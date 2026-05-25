@@ -53,6 +53,17 @@ export function createCoreRowModel<TData>(
   };
 }
 
+export function createRowModelFromRows<TData>(
+  rows: Row<TData>[],
+  rowsById?: Map<RowId, Row<TData>>
+): RowModel<TData> {
+  return {
+    rows,
+    flatRows: rows,
+    rowsById: rowsById ?? new Map(rows.map((row) => [row.id, row]))
+  };
+}
+
 export function createCells<TData>(
   row: Row<TData>,
   columns: readonly Column<TData>[]

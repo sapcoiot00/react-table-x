@@ -19,6 +19,7 @@ Phase 1 prioritizes:
 ```txt
 src/
   core/      Framework-agnostic table engine
+  features/  Isolated row-model and state feature modules
   react/     React adapter and React-specific rendering helpers
 ```
 
@@ -30,7 +31,7 @@ The core owns:
 - option normalization
 - state store and subscriptions
 - column normalization
-- row model generation
+- core row model generation
 - memoization
 - feature hooks
 
@@ -55,6 +56,10 @@ The table instance is a stable object with methods:
 - `getAllColumns`
 - `getVisibleColumns`
 - `getHeaderGroups`
+- `getCoreRowModel`
+- `getFilteredRowModel`
+- `getSortedRowModel`
+- `getPaginationRowModel`
 - `getRowModel`
 
 This keeps rendering fully user-owned while still giving consumers a coherent
@@ -68,9 +73,17 @@ State supports both modes:
 - controlled: `options.state` is merged over internal state and
   `onStateChange` receives updates
 
-Features extend the shared `TableState` shape over time. Phase 1 starts with
-`columnVisibility` because it proves the state pipeline without coupling the
-engine to a specific UI.
+Phase 1 state includes:
+
+- `columnVisibility`
+- `sorting`
+- `pagination`
+- `rowSelection`
+- `columnFilters`
+
+Feature-specific callbacks such as `onSortingChange` and
+`onPaginationChange` improve controlled-state DX. `onStateChange` remains a
+whole-table escape hatch.
 
 ## Row Model Pipeline
 
@@ -84,13 +97,19 @@ The row model is computed from:
 The original data array and row objects are never mutated. Accessed cell values
 are cached per row so repeated render reads do not repeatedly execute accessors.
 
-Future feature row models should compose as pipeline stages:
+Feature row models compose as pipeline stages:
 
 ```txt
-core rows -> filtered rows -> sorted rows -> grouped rows -> paginated rows
+core rows -> filtered rows -> sorted rows -> paginated rows
 ```
 
-Each stage should be independently memoized and optional.
+Each stage is independently memoized. Manual/server-side modes such as
+`manualPagination` skip the matching client-side transform.
+
+Core rows are not rebuilt when column visibility changes. The core row model is
+based on immutable data, all columns, and row identity. Visible cells are derived
+through the table instance so visibility changes do not invalidate raw row
+identity or cached accessor values.
 
 ## Feature System
 
@@ -102,20 +121,31 @@ Features are plain objects that can:
 This avoids a growing central table class and lets advanced behavior land as
 independent modules.
 
-Example future features:
+Current feature modules:
 
+- column visibility
 - sorting
 - filtering
+- pagination
+- row selection
+
+Built-in features are resolved in `core/features.ts`, then user-provided
+features are appended. This keeps feature registration explicit without
+requiring a public plugin system too early.
+
+Example future features:
+
 - grouping
 - column sizing
-- row selection
 - pinning
 - virtualization integration
 
 ## Performance Rules
 
 - Preserve table instance identity in adapters.
-- Memoize derived columns, visible columns, and row models.
+- Memoize derived columns, visible columns, visible cells, and row models.
+- Use narrow row-model dependencies such as `sorting`, `columnFilters`, and
+  `pagination` instead of invalidating every stage on unrelated state changes.
 - Treat user data as immutable input.
 - Do not put rendering logic in the core.
 - Prefer feature-local recomputation over invalidating the entire table.

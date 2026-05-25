@@ -17,8 +17,14 @@ npm run example
 
 Then open `http://127.0.0.1:5173`.
 
+To run the core test suite:
+
+```bash
+npm test
+```
+
 ```tsx
-import { TableX, useTableX } from 'react-table-x';
+import { TableX, createColumnHelper, useTableX } from 'react-table-x';
 
 type Person = {
   id: string;
@@ -46,6 +52,26 @@ return (
   <TableX table={table} emptyState="No rows found." />
 );
 ```
+
+For stronger column inference, use a column helper:
+
+```tsx
+const column = createColumnHelper<Person>();
+
+const columns = [
+  column.accessor('name', {
+    header: 'Name'
+  }),
+  column.accessor((row) => row.age, {
+    id: 'age',
+    header: 'Age'
+  })
+];
+```
+
+Phase 1 also includes client-side sorting, filtering, pagination, and row
+selection. Server-side pagination/sorting/filtering can opt out of client row
+transforms with flags such as `manualPagination: true`.
 
 ## Architecture
 
