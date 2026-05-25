@@ -1,6 +1,10 @@
 export type RowId = string;
 
 export type Updater<TValue> = TValue | ((previous: TValue) => TValue);
+export type SortingState = { id: string; desc: boolean }[];
+export type PaginationState = { pageIndex: number; pageSize: number };
+export type RowSelectionState = Record<RowId, boolean>;
+export type ColumnFiltersState = { id: string; value: unknown }[];
 
 export type AccessorFn<TData, TValue> = (
   row: TData,
@@ -16,6 +20,8 @@ export interface ColumnDef<TData, TValue = unknown> {
   accessorFn?: AccessorFn<TData, TValue>;
   header?: string | HeaderRenderer<TData, TValue>;
   cell?: CellRenderer<TData, TValue>;
+  filterFn?: (row: Row<TData>, columnId: string, filterValue: unknown) => boolean;
+  sortingFn?: (rowA: Row<TData>, rowB: Row<TData>, columnId: string) => number;
   meta?: Record<string, unknown>;
 }
 
@@ -60,6 +66,10 @@ export interface RowModel<TData> {
 
 export interface TableState {
   columnVisibility: Record<string, boolean>;
+  sorting: SortingState;
+  pagination: PaginationState;
+  rowSelection: RowSelectionState;
+  columnFilters: ColumnFiltersState;
 }
 
 export interface TableOptions<TData> {
@@ -68,7 +78,14 @@ export interface TableOptions<TData> {
   state?: Partial<TableState>;
   initialState?: Partial<TableState>;
   onStateChange?: (updater: Updater<TableState>) => void;
+  onSortingChange?: (updater: Updater<SortingState>) => void;
+  onPaginationChange?: (updater: Updater<PaginationState>) => void;
+  onRowSelectionChange?: (updater: Updater<RowSelectionState>) => void;
+  onColumnFiltersChange?: (updater: Updater<ColumnFiltersState>) => void;
   getRowId?: (row: TData, index: number) => RowId;
+  manualPagination?: boolean;
+  manualSorting?: boolean;
+  manualFiltering?: boolean;
   features?: readonly TableFeature<TData>[];
 }
 
@@ -96,6 +113,10 @@ export interface TableFeature<TData> {
   createTable?: (table: TableInstance<TData>) => void;
 }
 
+export interface TableFeatureContext<TData> {
+  table: TableInstance<TData>;
+}
+
 export interface TableInstance<TData> {
   getOptions: () => ResolvedTableOptions<TData>;
   setOptions: (options: TableOptions<TData>) => void;
@@ -104,8 +125,19 @@ export interface TableInstance<TData> {
   subscribe: (listener: () => void) => () => void;
   getAllColumns: () => Column<TData>[];
   getVisibleColumns: () => Column<TData>[];
+  getVisibleCells: (row: Row<TData>) => Cell<TData>[];
   getHeaderGroups: () => HeaderGroup<TData>[];
+  getCoreRowModel: () => RowModel<TData>;
+  getFilteredRowModel: () => RowModel<TData>;
+  getSortedRowModel: () => RowModel<TData>;
+  getPaginationRowModel: () => RowModel<TData>;
   getRowModel: () => RowModel<TData>;
+  setSorting: (updater: Updater<SortingState>) => void;
+  setPagination: (updater: Updater<PaginationState>) => void;
+  setColumnFilters: (updater: Updater<ColumnFiltersState>) => void;
+  setRowSelection: (updater: Updater<RowSelectionState>) => void;
+  toggleRowSelected: (rowId: RowId, selected?: boolean) => void;
+  getIsRowSelected: (rowId: RowId) => boolean;
   getCellContext: <TValue>(cell: Cell<TData, TValue>) => CellContext<TData, TValue>;
   getHeaderContext: <TValue>(header: Header<TData, TValue>) => HeaderContext<TData, TValue>;
 }

@@ -1,7 +1,14 @@
 import type { TableState, Updater } from './types.js';
 
 export const defaultTableState: TableState = {
-  columnVisibility: {}
+  columnVisibility: {},
+  sorting: [],
+  pagination: {
+    pageIndex: 0,
+    pageSize: 10
+  },
+  rowSelection: {},
+  columnFilters: []
 };
 
 export function resolveUpdater<TValue>(updater: Updater<TValue>, previous: TValue): TValue {
@@ -17,10 +24,14 @@ export function mergeTableState(
   return {
     ...base,
     ...partial,
-    columnVisibility: {
-      ...base.columnVisibility,
-      ...partial?.columnVisibility
-    }
+    columnVisibility: partial?.columnVisibility ?? base.columnVisibility,
+    sorting: partial?.sorting ?? base.sorting,
+    pagination: {
+      ...base.pagination,
+      ...partial?.pagination
+    },
+    rowSelection: partial?.rowSelection ?? base.rowSelection,
+    columnFilters: partial?.columnFilters ?? base.columnFilters
   };
 }
 

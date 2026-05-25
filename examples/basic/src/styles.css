@@ -55,10 +55,53 @@ label {
   font-weight: 600;
 }
 
-input {
+input[type="checkbox"] {
   width: 16px;
   height: 16px;
   accent-color: #2563eb;
+}
+
+input[type="text"],
+input[placeholder] {
+  min-height: 36px;
+  width: min(260px, 100%);
+  border: 1px solid #ccd4df;
+  border-radius: 8px;
+  padding: 0 12px;
+  color: #20252d;
+  font: inherit;
+}
+
+button {
+  min-height: 36px;
+  border: 1px solid #ccd4df;
+  border-radius: 8px;
+  background: white;
+  color: #20252d;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:disabled {
+  color: #98a2b3;
+  cursor: not-allowed;
+}
+
+.toolbar,
+footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+footer {
+  justify-content: flex-end;
+  margin-top: 16px;
+  margin-bottom: 0;
 }
 
 table {
@@ -110,6 +153,12 @@ tr:last-child td {
 
   header {
     align-items: start;
+    flex-direction: column;
+  }
+
+  .toolbar,
+  footer {
+    align-items: stretch;
     flex-direction: column;
   }
 

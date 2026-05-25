@@ -36,7 +36,7 @@ export function TableX<TData>({
         {rows.length > 0
           ? rows.map((row) => (
               <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
+                {table.getVisibleCells(row).map((cell) => (
                   <td key={cell.id}>
                     {flexRender(
                       cell.column.columnDef.cell ?? cell.renderValue(),
